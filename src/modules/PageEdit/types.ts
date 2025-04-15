@@ -13,8 +13,6 @@ export interface Page {
     title: string;
     description: string;
     parts: Part[];
-    created_at?: string;
-    updated_at?: string;
 }
 
 // PageEdit 的 Props，方便父项目传递数据和回调

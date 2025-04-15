@@ -1,44 +1,77 @@
 import React, { useState } from 'react';
-import { PageEditProps, Part, Page } from './types';
-import PartWrapper from './components/PartWrapper';
+import { Page, Part } from './types';
+import TextPart from './components/TextPart';
+import CodePart from './components/CodePart';
+import PdfPart from './components/PdfPart';
 import { pageApi } from './api/pageApi';
 import './PageEdit.css';
 
+interface PageEditProps {
+    page: Page;
+    onSave: (updatedPage: Page) => void;
+    onClose?: () => void;
+}
+
 const PageEdit: React.FC<PageEditProps> = ({ page, onSave, onClose }) => {
-    const [currentPage, setCurrentPage] = useState<Page>(page);
-    const [parts, setParts] = useState<Part[]>(page.parts.sort((a, b) => a.part_index - b.part_index));
+    const [title, setTitle] = useState(page.title);
+    const [description, setDescription] = useState(page.description);
+    const [parts, setParts] = useState<Part[]>(page.parts || []);
     const [isSaving, setIsSaving] = useState(false);
 
     // 更新页面基本信息
     const handlePageInfoChange = (field: 'title' | 'description', value: string) => {
-        setCurrentPage(prev => ({
-            ...prev,
-            [field]: value
-        }));
+        if (field === 'title') {
+            setTitle(value);
+        } else {
+            setDescription(value);
+        }
+    };
+
+    // 添加新的部分
+    const handleAddPart = (type: 'text' | 'code' | 'pdf') => {
+        const newPart: Part = {
+            id: '', // 新创建的 part 还没有 id
+            part_index: parts.length,
+            part_type: type,
+            part_content: '',
+            metadata: type === 'code' ? { language: 'javascript' } : undefined
+        };
+        setParts([...parts, newPart]);
+    };
+
+    // 删除页面部分
+    const handleDeletePart = async (partId: string) => {
+        try {
+            await pageApi.deletePagePart(partId);
+            setParts(parts.filter(part => part.id !== partId));
+        } catch (error) {
+            console.error('删除部分失败:', error);
+        }
     };
 
     // 保存页面部分
     const savePart = async (part: Part) => {
-        if (!currentPage) return null;
+        if (!page) return null;
         try {
             if (!part.id) {
                 // 新部分，需要创建
                 const response = await pageApi.createPagePart({
-                    page_id: currentPage.id,
+                    page_id: page.id,
                     part_index: part.part_index,
                     part_type: part.part_type,
                     part_content: part.part_content,
-                    meta_data: JSON.stringify(part.metadata)
+                    meta_data: part.metadata ? JSON.stringify(part.metadata) : undefined
                 });
-                return response.id;
+                return response;
             } else {
                 // 更新现有部分
-                await pageApi.updatePagePart(part.id, {
+                const response = await pageApi.updatePagePart(part.id, {
                     part_index: part.part_index,
+                    part_type: part.part_type,
                     part_content: part.part_content,
-                    meta_data: JSON.stringify(part.metadata)
+                    meta_data: part.metadata ? JSON.stringify(part.metadata) : undefined
                 });
-                return part.id;
+                return response;
             }
         } catch (error) {
             console.error('保存部分失败:', error);
@@ -46,56 +79,26 @@ const PageEdit: React.FC<PageEditProps> = ({ page, onSave, onClose }) => {
         }
     };
 
-    // 删除页面部分
-    const deletePart = async (id: string) => {
-        try {
-            if (id) {
-                await pageApi.deletePagePart(id);
-            }
-            setParts(parts.filter((part) => part.id !== id));
-        } catch (error) {
-            console.error('删除部分失败:', error);
-        }
-    };
-
-    const addPart = (type: 'text' | 'code' | 'pdf') => {
-        const newPart: Part = {
-            id: '', // 初始为空，等待后端分配
-            part_type: type,
-            part_content: type === 'text' ? '' : type === 'code' ? '// Your code here' : 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
-            part_index: parts.length + 1,
-            metadata: type === 'code' ? { language: 'javascript' } : type === 'pdf' ? { fileName: 'dummy.pdf' } : undefined,
-        };
-        setParts([...parts, newPart]);
-    };
-
-    const updatePart = (id: string, updates: Partial<Part>) => {
-        setParts(parts.map((part) => (part.id === id ? { ...part, ...updates } : part)));
-    };
-
     // 保存整个页面
     const handleSave = async () => {
         setIsSaving(true);
         try {
             // 保存页面基本信息
-            await pageApi.updatePage(currentPage.id, {
-                title: currentPage.title,
-                description: currentPage.description
+            await pageApi.updatePage(page.id, {
+                title,
+                description
             });
 
-            // 保存所有部分并更新 ID
+            // 保存所有部分
             const updatedParts = await Promise.all(
                 parts.map(async (part) => {
-                    const newId = await savePart(part);
-                    return newId ? { ...part, id: newId } : part;
+                    const savedPart = await savePart(part);
+                    return savedPart || part;
                 })
             );
 
-            // 更新本地状态
-            setParts(updatedParts);
-
             // 通知父组件保存成功
-            onSave({ ...currentPage, parts: updatedParts });
+            onSave({ ...page, title, description, parts: updatedParts });
         } catch (error) {
             console.error('保存页面失败:', error);
         } finally {
@@ -105,41 +108,90 @@ const PageEdit: React.FC<PageEditProps> = ({ page, onSave, onClose }) => {
 
     return (
         <div className="page-edit">
-            <div className="edit-header">
-                <div className="page-info-edit">
+            <div className="page-header">
+                <div className="page-info">
                     <input
                         type="text"
                         className="title-input"
-                        value={currentPage.title}
+                        value={title}
                         onChange={(e) => handlePageInfoChange('title', e.target.value)}
                         placeholder="页面标题"
                     />
                     <textarea
                         className="description-input"
-                        value={currentPage.description}
+                        value={description}
                         onChange={(e) => handlePageInfoChange('description', e.target.value)}
                         placeholder="页面描述"
                     />
                 </div>
-                <div className="button-group">
-                    <button onClick={() => addPart('text')}>添加文本</button>
-                    <button onClick={() => addPart('code')}>添加代码</button>
-                    <button onClick={() => addPart('pdf')}>添加PDF</button>
+                <div className="page-actions">
                     <button onClick={handleSave} disabled={isSaving}>
                         {isSaving ? '保存中...' : '保存'}
                     </button>
-                    {onClose && <button onClick={onClose}>关闭</button>}
+                    {onClose && (
+                        <button onClick={onClose}>关闭</button>
+                    )}
                 </div>
             </div>
-            <div className="parts-list">
-                {parts.map((part, index) => (
-                    <PartWrapper
-                        key={part.id || `temp-${index}`}
-                        part={part}
-                        index={index}
-                        onUpdate={updatePart}
-                        onDelete={deletePart}
-                    />
+            <div className="page-content">
+                <div className="add-part-buttons">
+                    <button onClick={() => handleAddPart('text')}>添加文本</button>
+                    <button onClick={() => handleAddPart('code')}>添加代码</button>
+                    <button onClick={() => handleAddPart('pdf')}>添加PDF</button>
+                </div>
+                {Array.isArray(parts) && parts.map((part, index) => (
+                    <div key={part.id || index} className="part-container">
+                        <div className="part-actions">
+                            <button 
+                                className="delete-part-button"
+                                onClick={() => handleDeletePart(part.id)}
+                            >
+                                删除
+                            </button>
+                        </div>
+                        {(() => {
+                            switch (part.part_type) {
+                                case 'text':
+                                    return (
+                                        <TextPart
+                                            content={part.part_content}
+                                            onChange={(content) => {
+                                                const updatedParts = [...parts];
+                                                updatedParts[index] = {
+                                                    ...part,
+                                                    part_content: content
+                                                };
+                                                setParts(updatedParts);
+                                            }}
+                                        />
+                                    );
+                                case 'code':
+                                    return (
+                                        <CodePart
+                                            content={part.part_content}
+                                            language={part.metadata?.language || 'javascript'}
+                                            onChange={(content) => {
+                                                const updatedParts = [...parts];
+                                                updatedParts[index] = {
+                                                    ...part,
+                                                    part_content: content
+                                                };
+                                                setParts(updatedParts);
+                                            }}
+                                        />
+                                    );
+                                case 'pdf':
+                                    return (
+                                        <PdfPart
+                                            url={part.part_content}
+                                            fileName={part.metadata?.fileName}
+                                        />
+                                    );
+                                default:
+                                    return null;
+                            }
+                        })()}
+                    </div>
                 ))}
             </div>
         </div>

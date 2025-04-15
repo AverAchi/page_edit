@@ -17,6 +17,16 @@ export interface CreatePageDto {
     file_id?: string;
 }
 
+export interface ExecuteCodeDto {
+    code: string;
+    language: string;
+}
+
+export interface ExecuteCodeResult {
+    output: string;
+    error?: string;
+}
+
 export const pageApi = {
     // 创建新页面
     createPage: async (data: CreatePageDto) => {
@@ -27,6 +37,12 @@ export const pageApi = {
     // 更新页面
     updatePage: async (pageId: string, data: Partial<CreatePageDto>) => {
         const response = await axios.patch(`${API_BASE_URL}/page/update/${pageId}`, data);
+        return response.data;
+    },
+
+    // 执行代码
+    executeCode: async (data: ExecuteCodeDto): Promise<ExecuteCodeResult> => {
+        const response = await axios.post(`${API_BASE_URL}/code/execute`, data);
         return response.data;
     },
 
@@ -62,7 +78,13 @@ export const pageApi = {
 
     // 获取用户页面列表
     getUserPages: async (userId: string) => {
-        const response = await axios.get(`${API_BASE_URL}/page/list/ofUser/${userId}`);
-        return response.data;
+        try {
+            const response = await axios.get(`${API_BASE_URL}/page/list/ofUser/${userId}`);
+            console.log('API 返回的页面列表:', response.data); // 添加日志
+            return response.data || [];
+        } catch (error) {
+            console.error('获取用户页面列表失败:', error);
+            return [];
+        }
     }
 };  

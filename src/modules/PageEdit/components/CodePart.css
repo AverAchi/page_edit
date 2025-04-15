@@ -1,0 +1,61 @@
+.code-part {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+}
+
+.code-editor {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.code-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.execute-button {
+    padding: 8px 16px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.execute-button:hover {
+    background-color: #45a049;
+}
+
+.execute-button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+.code-output {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 10px;
+    margin-top: 10px;
+}
+
+.code-output h4 {
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+.code-output pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-family: monospace;
+    font-size: 14px;
+    line-height: 1.5;
+} 
