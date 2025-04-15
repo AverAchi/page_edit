@@ -1,131 +1,165 @@
-.page-edit {
+.edit-page {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     padding: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
 }
 
 .edit-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
     border-bottom: 1px solid #eee;
 }
 
-.edit-header h2 {
-    margin: 0;
-}
-
-.edit-header button {
-    margin-left: 10px;
-    padding: 8px 16px;
-    border: none;
-    border-radius: 4px;
-    background-color: #007bff;
-    color: white;
-    cursor: pointer;
-}
-
-.edit-header button:hover {
-    background-color: #0056b3;
-}
-
-.new-page-section {
-    width: 100%;
+.header-left {
     display: flex;
-    justify-content: center;
-    padding: 40px 0;
+    align-items: center;
+    gap: 15px;
 }
 
-.new-page-section button {
-    padding: 15px 30px;
-    font-size: 16px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.new-page-section button:hover {
-    background-color: #45a049;
-}
-
-.button-group {
-    display: flex;
-    gap: 10px;
-}
-
-.button-group button {
+.cancel-button {
     padding: 8px 16px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
     background-color: #f0f0f0;
+    color: #333;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
     transition: background-color 0.3s;
 }
 
-.button-group button:hover {
+.cancel-button:hover {
     background-color: #e0e0e0;
 }
 
-.button-group button:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
+.save-button {
+    padding: 8px 16px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
 }
 
-.parts-list {
+.save-button:hover {
+    background-color: #218838;
+}
+
+.title-input {
+    font-size: 24px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.parts-container {
     display: flex;
     flex-direction: column;
     gap: 20px;
 }
 
-.part-wrapper {
+.part-edit {
     border: 1px solid #ddd;
     border-radius: 4px;
-    padding: 15px;
-    background-color: white;
+    overflow: hidden;
 }
 
 .part-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #eee;
+    padding: 8px 12px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #ddd;
 }
 
-.part-header button {
+.part-type-select {
+    padding: 4px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+}
+
+.part-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.part-actions button {
     padding: 4px 8px;
     border: none;
     border-radius: 4px;
-    background-color: #dc3545;
-    color: white;
     cursor: pointer;
+    transition: background-color 0.3s;
 }
 
-.part-header button:hover {
+.delete-button {
+    background-color: #dc3545;
+    color: white;
+}
+
+.delete-button:hover {
     background-color: #c82333;
 }
 
-.part-text {
+.move-button {
+    background-color: #6c757d;
+    color: white;
+}
+
+.move-button:hover {
+    background-color: #5a6268;
+}
+
+.part-content {
+    padding: 15px;
+}
+
+.part-content textarea {
     width: 100%;
     min-height: 100px;
-    padding: 10px;
+    padding: 8px;
     border: 1px solid #ddd;
     border-radius: 4px;
+    font-family: inherit;
     resize: vertical;
 }
 
-.part-pdf {
-    width: 100%;
-    overflow: auto;
+.part-content pre {
+    font-family: 'Courier New', Courier, monospace;
 }
 
-.part-pdf p {
-    margin-bottom: 10px;
-    font-weight: bold;
-} 
+.add-part-button {
+    margin-top: 20px;
+    padding: 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    width: 100%;
+}
+
+.add-part-button:hover {
+    background-color: #0056b3;
+}
+
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+    font-size: 16px;
+}
+
+.error {
+    text-align: center;
+    padding: 40px;
+    color: #dc3545;
+    font-size: 16px;
+}

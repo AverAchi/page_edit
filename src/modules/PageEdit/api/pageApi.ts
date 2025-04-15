@@ -58,5 +58,11 @@ export const pageApi = {
     getPagePartList: async (pageId: string) => {
         const response = await axios.get(`${API_BASE_URL}/page/part/list/${pageId}`);
         return response.data;
+    },
+
+    // 获取用户页面列表
+    getUserPages: async (userId: string) => {
+        const response = await axios.get(`${API_BASE_URL}/page/list/ofUser/${userId}`);
+        return response.data;
     }
-}; 
+};  

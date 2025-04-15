@@ -4,25 +4,17 @@ import PartWrapper from './components/PartWrapper';
 import { pageApi } from './api/pageApi';
 import './PageEdit.css';
 
-const PageEdit: React.FC<PageEditProps> = ({ onSave, onClose }) => {
-    const [currentPage, setCurrentPage] = useState<Page | null>(null);
-    const [parts, setParts] = useState<Part[]>([]);
+const PageEdit: React.FC<PageEditProps> = ({ page, onSave, onClose }) => {
+    const [currentPage, setCurrentPage] = useState<Page>(page);
+    const [parts, setParts] = useState<Part[]>(page.parts.sort((a, b) => a.part_index - b.part_index));
     const [isSaving, setIsSaving] = useState(false);
 
-    // 创建新页面
-    const createNewPage = async () => {
-        try {
-            const newPage = await pageApi.createPage({
-                title: '新页面',
-                description: '新建页面描述',
-                index: 1,
-                file_id: '5fe866e2-5ced-43fb-b18d-7e169ef61d18'//just for test
-            });
-            setCurrentPage(newPage);
-            setParts([]);
-        } catch (error) {
-            console.error('创建页面失败:', error);
-        }
+    // 更新页面基本信息
+    const handlePageInfoChange = (field: 'title' | 'description', value: string) => {
+        setCurrentPage(prev => ({
+            ...prev,
+            [field]: value
+        }));
     };
 
     // 保存页面部分
@@ -38,7 +30,6 @@ const PageEdit: React.FC<PageEditProps> = ({ onSave, onClose }) => {
                     part_content: part.part_content,
                     meta_data: JSON.stringify(part.metadata)
                 });
-                // 更新本地状态，使用后端返回的 ID
                 return response.id;
             } else {
                 // 更新现有部分
@@ -68,10 +59,6 @@ const PageEdit: React.FC<PageEditProps> = ({ onSave, onClose }) => {
     };
 
     const addPart = (type: 'text' | 'code' | 'pdf') => {
-        if (!currentPage) {
-            alert('请先创建页面');
-            return;
-        }
         const newPart: Part = {
             id: '', // 初始为空，等待后端分配
             part_type: type,
@@ -88,10 +75,6 @@ const PageEdit: React.FC<PageEditProps> = ({ onSave, onClose }) => {
 
     // 保存整个页面
     const handleSave = async () => {
-        if (!currentPage) {
-            alert('请先创建页面');
-            return;
-        }
         setIsSaving(true);
         try {
             // 保存页面基本信息
@@ -123,38 +106,42 @@ const PageEdit: React.FC<PageEditProps> = ({ onSave, onClose }) => {
     return (
         <div className="page-edit">
             <div className="edit-header">
-                {currentPage ? (
-                    <>
-                        <h2>{currentPage.title}</h2>
-                        <div className="button-group">
-                            <button onClick={() => addPart('text')}>Add Text</button>
-                            <button onClick={() => addPart('code')}>Add Code</button>
-                            <button onClick={() => addPart('pdf')}>Add PDF</button>
-                            <button onClick={handleSave} disabled={isSaving}>
-                                {isSaving ? 'Saving...' : 'Save'}
-                            </button>
-                            {onClose && <button onClick={onClose}>Close</button>}
-                        </div>
-                    </>
-                ) : (
-                    <div className="new-page-section">
-                        <button onClick={createNewPage}>+ 新建页面</button>
-                    </div>
-                )}
-            </div>
-            {currentPage && (
-                <div className="parts-list">
-                    {parts.map((part, index) => (
-                        <PartWrapper
-                            key={part.id || `temp-${index}`}
-                            part={part}
-                            index={index}
-                            onUpdate={updatePart}
-                            onDelete={deletePart}
-                        />
-                    ))}
+                <div className="page-info-edit">
+                    <input
+                        type="text"
+                        className="title-input"
+                        value={currentPage.title}
+                        onChange={(e) => handlePageInfoChange('title', e.target.value)}
+                        placeholder="页面标题"
+                    />
+                    <textarea
+                        className="description-input"
+                        value={currentPage.description}
+                        onChange={(e) => handlePageInfoChange('description', e.target.value)}
+                        placeholder="页面描述"
+                    />
                 </div>
-            )}
+                <div className="button-group">
+                    <button onClick={() => addPart('text')}>添加文本</button>
+                    <button onClick={() => addPart('code')}>添加代码</button>
+                    <button onClick={() => addPart('pdf')}>添加PDF</button>
+                    <button onClick={handleSave} disabled={isSaving}>
+                        {isSaving ? '保存中...' : '保存'}
+                    </button>
+                    {onClose && <button onClick={onClose}>关闭</button>}
+                </div>
+            </div>
+            <div className="parts-list">
+                {parts.map((part, index) => (
+                    <PartWrapper
+                        key={part.id || `temp-${index}`}
+                        part={part}
+                        index={index}
+                        onUpdate={updatePart}
+                        onDelete={deletePart}
+                    />
+                ))}
+            </div>
         </div>
     );
 };
