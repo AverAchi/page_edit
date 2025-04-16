@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:20250'; // 请根据实际后端地址修改
+const API_BASE_URL = 'https://cs304.averachi.online/api';
+const API_CODE_URL = 'https://99dd-110-65-147-209.ngrok-free.app/code/execute';
 
 export interface CreatePagePartDto {
     page_id: string;
@@ -42,7 +43,7 @@ export const pageApi = {
 
     // 执行代码
     executeCode: async (data: ExecuteCodeDto): Promise<ExecuteCodeResult> => {
-        const response = await axios.post(`${API_BASE_URL}/code/execute`, data);
+        const response = await axios.post(API_CODE_URL, data);
         return response.data;
     },
 
